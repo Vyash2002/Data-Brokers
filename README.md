@@ -1,7 +1,7 @@
 # CSE558 Midterm: Wine Reviews
 
-**Is a wine score a property of the wine or of the critic?** This is statistical inference through hypothesis testing
-on 120k WineEnthusiast reviews. It is the CSE558 Data Science midterm project (IIIT-Delhi, Monsoon 2026).
+**Is a wine's score about the wine, or about the critic who tasted it?** Hypothesis testing on 120k WineEnthusiast
+reviews, for the CSE558 Data Science midterm (IIIT-Delhi, Monsoon 2026).
 
 Team: *TODO: group name and members*
 
@@ -11,7 +11,7 @@ Team: *TODO: group name and members*
 |---|---|
 | Source | Kaggle, *Wine Reviews* by zynicide: https://www.kaggle.com/datasets/zynicide/wine-reviews |
 | Downloaded | 22 October 2026 |
-| File used | `data/winemag-data-130k-v2.csv` **only** (129,971 rows × 13 attributes, about 50 MB) |
+| File used | `data/winemag-data-130k-v2.csv` **only** (129,971 rows × 13 columns, about 50 MB) |
 | Not used | `winemag-data_first150k.csv` and `winemag-data-130k-v2.json` from the same download |
 
 If `data/winemag-data-130k-v2.csv` is missing, download the Kaggle dataset and copy that one file into `data/`.
@@ -25,64 +25,53 @@ pip install -r requirements.txt
 jupyter nbconvert --to notebook --execute --inplace notebooks/midterm.ipynb   # or open it and Run All
 ```
 
-A full run takes under a minute. It regenerates everything the report uses:
+A full run takes under a minute. It writes:
 
-* `data/winemag_clean.csv`: the cleaned table (readable columns), which every test starts from
-* `data/winemag_encoded.csv`: the encoded table behind the 3M size check
+* `data/winemag_clean.csv`: the cleaned data, which every test starts from
+* `data/winemag_encoded.csv`: the encoded data behind the 3M size check
 * `figures/*.pdf`: every plot
-* `report/tables/*.tex`: every table, as LaTeX `tabular`s
-* `report/numbers.tex`: every number quoted in the report, as `\val{key}` (`\input` it in the report preamble)
-* `report/results.json`: the five test results in machine-readable form
 
-No number in the report is typed by hand. A random seed (558) fixes the plot jitter.
+Every number in the report is copied from the notebook's printed output.
 
 ## Layout
 
 ```
 data/                    winemag-data-130k-v2.csv (raw, from Kaggle)
                          winemag_clean.csv, winemag_encoded.csv (written by the notebook)
-notebooks/midterm.ipynb  all cleaning, encoding, EDA and tests
+notebooks/midterm.ipynb  cleaning, encoding, exploring and the five tests
 figures/                 plots (PDF, for LaTeX)
-report/                  numbers.tex, results.json, tables/ (the LaTeX report goes here too)
+report/                  the LaTeX report (to do)
 ```
 
-Both prepared tables have 119,895 rows. Their first column, `raw_row`, is the row id in the Kaggle file.
+Both prepared tables have 119,895 rows. Their first column, `raw_row`, is the row number in the Kaggle file.
 
-* `winemag_clean.csv` has the cleaned attributes:
+* `winemag_clean.csv` has the cleaned columns:
   * `country`, `province`, `region_1`, `taster_name`, `title`, `variety`, `description`
   * `points`
-  * `price` (capped at the IQR fence) and `price_raw` (observed dollars, empty where imputed)
+  * `price` (capped at the IQR fence) and `price_raw` (observed dollars, empty where the price was filled in)
   * `price_imputed`, `vintage`, `desc_words`
-* `winemag_encoded.csv` has 26 attributes:
+* `winemag_encoded.csv` has 26 columns:
   * 5 numeric: `points`, `price`, `price_imputed`, `vintage`, `desc_words`
   * `country_*`: 10 one-hot columns (top 9 and Other)
   * `variety_*`: 11 one-hot columns (top 10 and Other)
 
-## Where each table and figure comes from
+## Where each output comes from
 
-| Output | Notebook section | Report section |
-|---|---|---|
-| `tables/features.tex` (key features, type, meaning) | 1 Dataset | 1 |
-| size check (`\val{rowsClean}` × `\val{colsEnc}` = `\val{cellsEnc}`) | 2.12 Encoding and the 3M size check | 1 |
-| `data/winemag_clean.csv`, `data/winemag_encoded.csv` | 2.12 | 2 |
-| `tables/prep.tex` (issue → what we did → why) | 2.12 | 2 |
-| `tables/step_log.tex` (rows and columns after every step) | 2.1–2.11 | 2–3 |
-| `figures/fig_price_outliers.pdf` (boxplot, quantile plot, after capping) | 2.10 Price outliers | 2 |
-| `tables/before_after.tex` | 3 Before and after | 3 |
-| `figures/fig_points.pdf` (score histogram) | 4 EDA | 4 |
-| `figures/fig_price_points.pdf` (points by price band) | 4 EDA | 4 |
-| `figures/fig_tasters.pdf` (critic means at $20–40) | 4 EDA | 4 |
-| `figures/fig_words.pdf` (note length vs points) | 4 EDA | 4 |
-| T1 Old vs New World: F-test, then Welch t; pooled t, z, within-critic check | 5 T1 | 5 |
-| T2 note length vs points: t on Pearson r; Welch t; `tables/t2_tasters.tex` | 5 T2 | 5 |
-| T3 price band × 90+: χ² independence; `tables/t3_bands.tex`, `figures/fig_band90.pdf` | 5 T3 | 5 |
-| T4 Gregutt vs Sullivan 90+ share: two-proportion z; `figures/fig_wa_vintages.pdf` | 5 T4 | 5 |
-| T5 Gregutt vs Sullivan spread: F-test; `figures/fig_qq.pdf` | 5 T5 | 5 |
-| `tables/tests_summary.tex` (all five tests) | 5 Summary | 5 |
-| limitation figures (truncation, winery clustering) | 6 Limitations | 6 |
+| Output | Notebook section |
+|---|---|
+| size check (119,895 × 26 = 3,117,270) and the two data files | 2.12 Encode categories and check the size |
+| `figures/fig_price_outliers.pdf` (boxplot, quantile plot, after capping) | 2.10 Handle very high prices |
+| before vs after table | 3 Before vs after cleaning |
+| `figures/fig_points.pdf`, `fig_price_points.pdf`, `fig_tasters.pdf`, `fig_words.pdf` | 4 Exploring the data |
+| T1 Old vs New World: F-test, then Welch t; pooled t as the other test | 5 T1 |
+| T2 review length vs score: t on Pearson r; Welch t as the other test | 5 T2 |
+| T3 price band × 90+: χ² independence; `figures/fig_band90.pdf` | 5 T3 |
+| T4 Gregutt vs Sullivan, 90+ share: two-proportion z; `figures/fig_wa_vintages.pdf` | 5 T4 |
+| T5 Gregutt vs Sullivan, spread: F-test; `figures/fig_qq.pdf` | 5 T5 |
+| summary of the five tests | 5 Summary |
 
 ## Methods
 
 The tests use only methods from the course lectures (L2–L8): descriptive statistics, Pearson skewness and kurtosis,
-boxplots, quantile and Q-Q plots, Pearson correlation, one- and two-sample z and t tests (pooled and Welch),
-F-test for two variances, χ² test for a variance, z-test for two proportions, and χ² test for independence.
+boxplots, quantile and Q-Q plots, Pearson correlation, two-sample t tests (pooled and Welch), F-test for two
+variances, χ² test for a variance, z-test for two proportions, and χ² test for independence.
